@@ -4,6 +4,8 @@ import Footer from "./components/Footer";
 
 export default function Movie() {
   const [movieList, setMovieList] = useState([]);
+  const [searchResults, setSearchResults] = useState([]);
+  const [searchQuery, setSearchQuery] = useState("");
 
   const getMovie = () => {
     fetch(
@@ -17,12 +19,29 @@ export default function Movie() {
     getMovie();
   }, []);
 
+  const handleSearch = (query) => {
+    setSearchQuery(query);
+    if (query) {
+      fetch(
+        `https://api.themoviedb.org/3/search/movie?api_key=b01f0a490c4126adb1d5a66a5ad05f1d&query=${query}`
+      )
+        .then((res) => res.json())
+        .then((json) => setSearchResults(json.results));
+    } else {
+      // Kosongkan hasil pencarian jika query kosong
+      setSearchResults([]);
+    }
+  };
+
+  // Gabungkan hasil pencarian dengan daftar film jika ada hasil pencarian
+  const combinedMovieList = searchQuery !== "" ? searchResults : movieList;
+
   return (
     <div className="flex flex-wrap justify-center">
-      <Navigasi/>
-      {movieList.map((movie) => (
+      <Navigasi onSearch={handleSearch} />
+      {combinedMovieList.map((movie) => (
         <div key={movie.id} className="max-w-sm m-2 mt-10 w-64 ml-5">
-          <div className="bg-white shadow-lg rounded-lg overflow-hidden transition-transform hover:scale-125 duration-200">
+          <div className="bg-white shadow-lg rounded-lg overflow-hidden transition-transform hover:scale-105 duration-200">
             <img
               className="w-full h-96"
               src={`https://image.tmdb.org/t/p/w500${movie.poster_path}`}
@@ -36,9 +55,7 @@ export default function Movie() {
           </div>
         </div>
       ))}
-  
-
-  <Footer/>
+      <Footer />
     </div>
   );
 }
